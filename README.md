@@ -1,9 +1,12 @@
 # PyTorch - Sparse Coding 
- PyTorch implementation, with CUDA support, of the sparse coding algorithm based on the paper by Olshausen and Field (1997). Inference is performed using either the FISTA (Fast Iterative Shrinkage-Thresholding Algorithm) or ISTA (Iterative Shrinkage-Thresholding Algorithm) algorithm.
+ PyTorch implementation, with CUDA support, of the sparse coding algorithm based on the paper by Olshausen and Field (1997). Inference is performed using either the FISTA (Fast Iterative Shrinkage-Thresholding Algorithm), ISTA (Iterative Shrinkage-Thresholding Algorithm) algorithm, or gradient descent with a log-penalty regularization (differentiable).
+
+![Example GIF](example.gif)
 
 ## Installation
 - Clone the repository: `git clone https://github.com/rkhz/sparse-coding.git`
 - Install dependencies: `pip install -r requirements.txt`
+
 
 ## References
 1. **Sparse Coding with an Overcomplete Basis Set: A Strategy Employed by V1?**
