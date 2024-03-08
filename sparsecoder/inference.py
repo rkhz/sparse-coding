@@ -1,8 +1,9 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-
 from enum import Enum
+
+from . import nn
 
 class Methods(Enum):
     """
@@ -36,7 +37,7 @@ def get_Lipschitz_cst(a: torch.Tensor) -> float:
 ################################
 # Laplacian prior (L1 penalty) #
 ################################
-def FISTA(x: torch.Tensor, phi: torch.Tensor, lambda_sparse: float = 0.9, iter: int = 30, device: torch.device = None) -> torch.Tensor:
+def FISTA(x: torch.Tensor, phi: torch.Tensor, lambda_sparse: float = 0.9, iter: int = 30, only_pos: bool=True,  device: torch.device = None) -> torch.Tensor:
     """
     Infer the sparse coefficients (alpha) of a Sparse Coding model 
     by applying Fast Iterative Shrinkage-Thresholding Algorithm (FISTA).
@@ -46,12 +47,19 @@ def FISTA(x: torch.Tensor, phi: torch.Tensor, lambda_sparse: float = 0.9, iter: 
         phi (torch.Tensor): set of basis functions.
         lambda_sparse (float, optional): sparsity regularization parameter (default: 0.9).
         iter (int, optional): number of iterations (default: 30).
+        only_pos (bool, optional): returns only positive coefficents.
         device (torch.device, optional): device to place tensors on (default: None).
 
     Returns:
         torch.Tensor: sparse coefficients.
     """
     l = get_Lipschitz_cst(phi)
+
+    if not only_pos:
+        shrink = torch.nn.Softshrink(lambda_sparse/l)
+    else:
+        shrink = nn.Postiveshrink(lambda_sparse/l)
+
     alpha = torch.zeros((x.shape[0], phi.shape[0]), device=device)
     t_curr = t_next = 1
     for _ in range(iter):
@@ -61,7 +69,7 @@ def FISTA(x: torch.Tensor, phi: torch.Tensor, lambda_sparse: float = 0.9, iter: 
         alpha_prev = alpha.clone()
 
         alpha -= (1/l) * grad_alpha_squared_error(x, alpha, phi)
-        alpha = F.softshrink(alpha, lambda_sparse/l) 
+        alpha = shrink(alpha) #F.softshrink(alpha, lambda_sparse/l) 
         alpha += ((t_curr - 1) / t_next) * (alpha - alpha_prev)
     return alpha
 
